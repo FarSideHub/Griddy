@@ -1,0 +1,126 @@
+<html>
+<body>
+	<pre>use dashes to separate syllables</pre>
+	<form action="#" id="draw">
+		<input id="text"/>
+		<button type="submit">draw!</button>
+	</form>
+	<canvas id="c"></canvas>
+	<script>
+		// set up canvas context
+		var ctx=document.getElementById('c').getContext('2d');
+		// set up action for button
+		document.getElementById('draw').addEventListener('submit',(evt)=>{
+			drawText(document.getElementById('text').value);
+			evt.preventDefault();
+			console.log(evt);
+		});
+		var grid=20;
+		var alpha={
+			/*
+			0 -> -
+			1 -> |
+			2 -> +
+			*/
+			"a":[1,0,0],
+			"b":[0,1,2],
+			"c":[1,2,1],
+			"d":[0,2,0],
+			"e":[0,0,0],
+			"f":[2,1,0],
+			"g":[0,2,2],
+			"h":[1,1,0],
+			"i":[0,0,1],
+			"j":[2,3,3],
+			"k":[2,0,2],
+			"l":[0,0,2],
+			"m":[1,1,2],
+			"n":[0,1,1],
+			"o":[0,1,0],
+			"p":[2,0,1],
+			"q":[2,2,0],
+			"r":[2,0,0],
+			"s":[1,0,1],
+			"t":[1,1,1],
+			"u":[2,1,1],
+			"v":[1,2,0],
+			"w":[0,2,1],
+			"x":[2,1,2],
+			"y":[1,0,2],
+			"z":[2,2,1]
+		};
+		function getRandomColor() {
+			var letters='0123456789ABCDEF';
+			var color='#';
+			for(var i=0;i<6;i++){
+				color+=letters[Math.floor(Math.random()*16)];
+			}
+			return color;
+		}
+		function calculateSize(arr){
+			var x=3*grid,y=0,maxx=0,maxy=0;
+			for(var i=0;i<arr.length;i++){
+				var l=arr[i];
+				if(l=='-'){
+					x=3*grid;
+					maxy=Math.max(maxy,y+=grid/2);
+				}else if(l==' '){
+					x=3*grid;
+					maxy=Math.max(maxy,y+=grid*1.5);
+				}else if(alpha.hasOwnProperty(l)){
+					maxx=Math.max(maxx,x+=grid/2);
+					y+=grid/2;
+					maxy=Math.max(maxy,y+grid/2);// the symbol overhangs by a half grid spacing
+				}
+			}
+			// add some spacing for rounded corners
+			return [maxx+10,maxy+10];
+		}
+		function drawText(text){
+			text=text.split("").map(a=>a.toLowerCase());
+			var s=calculateSize(text);
+			ctx.canvas.width=s[0];
+			ctx.canvas.height=s[1];
+			ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+			ctx.lineWidth=3;
+			ctx.lineCap="round";
+			var x=5,y=5;
+			for(var i=0;i<text.length;i++){
+				var l=text[i];
+				if(l=='-'){
+					x=0;
+					y+=grid/2;
+				}else if(l==' '){
+					x=0;
+					y+=grid*1.5;
+				}else if(alpha.hasOwnProperty(l)){
+					ctx.strokeStyle=getRandomColor();
+					drawGlyph(l,x,y);
+					x+=grid/2;
+					y+=grid/2;
+				}
+			}
+		}
+		function drawGlyph(letter,x,y){
+			letter=letter[0].toLowerCase();
+			if(!alpha.hasOwnProperty(letter)) return;
+			letter=alpha[letter];
+			for(var i=0;i<3;i++){
+				if(letter[i]!=1){
+					ctx.beginPath();
+					ctx.moveTo(x,y+grid/2);
+					ctx.lineTo(x+grid,y+grid/2);
+					ctx.stroke();
+				}
+				if(letter[i]!=0){
+					ctx.beginPath();
+					ctx.moveTo(x+grid/2,y);
+					ctx.lineTo(x+grid/2,y+grid);
+					ctx.stroke();
+				}
+				x+=grid;
+			}
+		}
+	</script>
+</body>
+</html>
